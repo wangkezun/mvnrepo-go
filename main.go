@@ -1,5 +1,7 @@
 package main
 
+import "github.com/wangkezun/mvnrepo-go/workflow"
+
 func main() {
-	println("Hello, mvnrepo")
+	workflow.WF.Run(workflow.Query)
 }
