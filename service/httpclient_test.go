@@ -17,3 +17,8 @@ func TestArtifact(t *testing.T) {
 		log.Printf("%v", v)
 	}
 }
+
+func TestVersion(t *testing.T) {
+	versionResult, _ := Version("org.jetbrains.kotlin", "kotlin-stdlib", "1.3.11")
+	log.Printf("%v", versionResult)
+}

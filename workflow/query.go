@@ -87,6 +87,13 @@ func Query() {
 			WF.FatalError(err)
 		}
 		BuildArtifactResultItem(artifactResults)
+	} else if len(args) == 3 {
+		log.Printf("into version page, groupId:%v,artifactId:%v,version:%v", args[0], args[1], args[2])
+		versionResult, err := service.Version(args[0], args[1], args[2])
+		if err != nil {
+			WF.FatalError(err)
+		}
+		BuildVersionResultItem(versionResult)
 	}
 
 	WF.SendFeedback()
@@ -97,7 +104,7 @@ func BuildSearchResultItem(results []*service.SearchResult) {
 		for _, result := range results {
 			makeName := fmt.Sprintf("%v >> %v", result.GroupId, result.ArtifactId)
 			arg := fmt.Sprintf("%v %v", result.GroupId, result.ArtifactId)
-			item := WF.NewItem(result.Title).Subtitle(makeName).Arg(arg).Valid(true).Icon(&aw.Icon{Value: fmt.Sprintf("icons/%v.png", strings.ToUpper(string(result.ArtifactId[0])))})
+			item := WF.NewItem(result.Title).Subtitle(makeName).Autocomplete(arg).Valid(true).Icon(&aw.Icon{Value: fmt.Sprintf("icons/%v.png", strings.ToUpper(string(result.ArtifactId[0])))})
 			titleCache.StoreJSON(makeName, result.Title)
 			modifier := item.NewModifier(aw.ModCmd).Subtitle(result.Description)
 			modifier.Arg(result.Url).Valid(true)
@@ -113,13 +120,20 @@ func BuildArtifactResultItem(results []*service.ArtifactResult) {
 		makeName := fmt.Sprintf("%v %v", result.GroupId, result.ArtifactId)
 		var title string
 		_ = titleCache.LoadJSON(makeName, title)
-		makeArg := fmt.Sprintf("%v %v %v", result.GroupId, result.ArtifactId, result.Version)
-		item := WF.NewItem(result.Version).Subtitle(makeName).Arg(makeArg).Icon(&aw.Icon{Value: fmt.Sprintf("icons/%v.png", strings.ToUpper(string(result.ArtifactId[0])))})
+		arg := fmt.Sprintf("%v %v %v", result.GroupId, result.ArtifactId, result.Version)
+		item := WF.NewItem(result.Version).Subtitle(makeName).Autocomplete(arg).Arg(arg).Valid(false).Icon(&aw.Icon{Value: fmt.Sprintf("icons/%v.png", strings.ToUpper(string(result.ArtifactId[0])))})
 		//这里其实可以用modifier做复制粘贴了，
 		item.NewModifier(aw.ModCmd).Subtitle("Open in browser").Arg(result.Url).Valid(true)
 		item.NewModifier(aw.ModCtrl).Subtitle("Copy as maven format, scope may wrong").Arg(BuildMavenArg(result)).Valid(true)
 		item.NewModifier(aw.ModShift).Subtitle("Copy as gradle format, configurations may wrong").Arg(BuildGradleArg(result)).Valid(true)
 	}
+}
+
+func BuildVersionResultItem(result *service.VersionResult) {
+	WF.NewItem("Maven").Subtitle("Copy as Maven format").Arg(result.Maven).Valid(true)
+	WF.NewItem("Gradle").Subtitle("Copy as Gradle format").Arg(result.Gradle).Valid(true)
+	WF.NewItem("SBT").Subtitle("Copy as SBT format").Arg(result.SBT).Valid(true)
+	WF.NewItem("Ivy").Subtitle("Copy as Ivy format").Arg(result.Ivy).Valid(true)
 }
 
 func BuildMavenArg(result *service.ArtifactResult) string {

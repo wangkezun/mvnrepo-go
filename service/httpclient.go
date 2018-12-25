@@ -23,6 +23,13 @@ type ArtifactResult struct {
 	Url        string
 }
 
+type VersionResult struct {
+	Maven  string
+	Gradle string
+	SBT    string
+	Ivy    string
+}
+
 // "https://mvnrepository.com/search?q=kotlin" 走这个接口的请求
 func Search(name string) (searchResults []*SearchResult, err error) {
 	searchUrl := fmt.Sprintf("https://mvnrepository.com/search?q=%v", name)
@@ -74,5 +81,23 @@ func FilterArtifactBody(doc *goquery.Document, groupId, artifactId string) (arti
 		result := &ArtifactResult{GroupId: groupId, ArtifactId: artifactId, Version: version, Url: fmt.Sprintf("https://mvnrepository.com/artifact/%v/%v/%v", groupId, artifactId, version)}
 		artifactResults = append(artifactResults, result)
 	})
+	return
+}
+
+func Version(groupId, artifactId, version string) (versionResult *VersionResult, err error) {
+	versionUrl := fmt.Sprintf("https://mvnrepository.com/artifact/%v/%v/%v", groupId, artifactId, version)
+	resp, err := http.Get(versionUrl)
+	defer resp.Body.Close()
+	document, err := goquery.NewDocumentFromReader(resp.Body)
+	versionResult, _ = FilterVersionBody(document)
+	return
+}
+
+func FilterVersionBody(doc *goquery.Document) (versionResult *VersionResult, err error) {
+	maven := doc.Find("textarea#maven-a").Text()
+	gradle := doc.Find("textarea#gradle-a").Text()
+	sbt := doc.Find("textarea#sbt-a").Text()
+	ivy := doc.Find("textarea#ivy-a").Text()
+	versionResult = &VersionResult{Maven: maven, Gradle: gradle, SBT: sbt, Ivy: ivy}
 	return
 }
