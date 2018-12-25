@@ -70,7 +70,7 @@ func Query() {
 				Icon(&aw.Icon{Value: "icons/update.png"})
 		}
 
-		WF.WarnEmpty("No matching items", "Try a different query?")
+		WF.WarnEmpty("No Updates", "")
 		WF.SendFeedback()
 	} else if len(args) == 1 {
 		log.Printf("into default search,arg:%v", args[0])
