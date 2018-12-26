@@ -5,6 +5,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"log"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -94,10 +95,20 @@ func Version(groupId, artifactId, version string) (versionResult *VersionResult,
 }
 
 func FilterVersionBody(doc *goquery.Document) (versionResult *VersionResult, err error) {
-	maven := doc.Find("textarea#maven-a").Text()
-	gradle := doc.Find("textarea#gradle-a").Text()
-	sbt := doc.Find("textarea#sbt-a").Text()
-	ivy := doc.Find("textarea#ivy-a").Text()
+	maven := dropComment(doc.Find("textarea#maven-a").Text())
+	gradle := dropComment(doc.Find("textarea#gradle-a").Text())
+	sbt := dropComment(doc.Find("textarea#sbt-a").Text())
+	ivy := dropComment(doc.Find("textarea#ivy-a").Text())
 	versionResult = &VersionResult{Maven: maven, Gradle: gradle, SBT: sbt, Ivy: ivy}
 	return
+}
+
+func dropComment(s string) string {
+	r, _ := regexp.Compile("https://mvnrepository.com*")
+	if r.MatchString(s) {
+		return strings.Join(strings.Split(s, "\n")[1:], "\n")
+	} else {
+		return s
+	}
+
 }
